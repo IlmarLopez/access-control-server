@@ -52,6 +52,7 @@ type UpdateUserRequest struct {
 	RoleID    string `json:"role_id" db:"-"`
 	FirstName string `json:"first_name" db:"first_name"`
 	LastName  string `json:"last_name" db:"last_name"`
+	IsActive bool `json:"is_active" db:"is_active"`
 }
 
 // Validate validates the CreateUserRequest fields.
@@ -138,6 +139,7 @@ func (s service) Update(ctx context.Context, id string, req UpdateUserRequest) (
 	user.FirstName = req.FirstName
 	user.LastName = req.LastName
 	user.UpdatedAt = &now
+	user.IsActive = req.IsActive
 
 	if err := s.repo.Update(ctx, user.User); err != nil {
 		return user, err

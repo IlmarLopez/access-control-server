@@ -38,7 +38,7 @@ func NewRepository(db *dbcontext.DB, logger log.Logger) Repository {
 // Get reads the user with the specified ID from the database.
 func (r repository) Get(ctx context.Context, id string) (entity.User, error) {
 	var user entity.User
-	err := r.db.With(ctx).Select().Model(id, &user)
+	err := r.db.With(ctx).Select("*", "(select name from roles where id = role_id) as role_name").Model(id, &user)
 	return user, err
 }
 
@@ -62,7 +62,8 @@ func (r repository) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	return r.db.With(ctx).Model(&user).Delete()
+	user.IsActive = false
+	return r.db.With(ctx).Model(&user).Exclude("RoleName").Update()
 }
 
 // Count returns the number of the user records in the database.
