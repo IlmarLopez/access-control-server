@@ -10,6 +10,7 @@ type User struct {
 	CreatedAt time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at" db:"updated_at"`
 	RoleID    string     `json:"role_id" db:"role_id"`
+	RoleName    string     `json:"role_name" db:"role_name"`
 	IsActive  bool       `json:"is_active" db:"is_active"`
 	FirstName string     `json:"first_name" db:"first_name"`
 	LastName  string     `json:"last_name" db:"last_name"`

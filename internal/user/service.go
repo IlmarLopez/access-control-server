@@ -57,7 +57,11 @@ type UpdateUserRequest struct {
 // Validate validates the CreateUserRequest fields.
 func (m UpdateUserRequest) Validate() error {
 	return validation.ValidateStruct(&m,
+		validation.Field(&m.FirstName, validation.Required, validation.Length(0, 50)),
+		validation.Field(&m.LastName, validation.Required, validation.Length(0, 50)),
 		validation.Field(&m.Username, validation.Required, validation.Length(0, 50)),
+		validation.Field(&m.RoleID, validation.Required, validation.Length(0, 36)),
+		validation.Field(&m.Password, validation.Length(0, 50)),
 	)
 }
 
@@ -121,13 +125,15 @@ func (s service) Update(ctx context.Context, id string, req UpdateUserRequest) (
 	}
 
 	now := time.Now()
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.MinCost)
-	if err != nil {
-		return user, err
+	if len(req.Password) > 0 {
+		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.MinCost)
+		if err != nil {
+			return user, err
+		}
+		user.Password = string(hash)
 	}
 
 	user.Username = req.Username
-	user.Password = string(hash)
 	user.RoleID = req.RoleID
 	user.FirstName = req.FirstName
 	user.LastName = req.LastName

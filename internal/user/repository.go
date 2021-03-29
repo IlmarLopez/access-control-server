@@ -45,12 +45,15 @@ func (r repository) Get(ctx context.Context, id string) (entity.User, error) {
 // Create saves a new user record in the database.
 // It returns the ID of the newly inserted user record.
 func (r repository) Create(ctx context.Context, user entity.User) error {
-	return r.db.With(ctx).Model(&user).Insert()
+	return r.db.With(ctx).Model(&user).Exclude("RoleName").Insert()
 }
 
 // Update saves the changes to an user in the database.
 func (r repository) Update(ctx context.Context, user entity.User) error {
-	return r.db.With(ctx).Model(&user).Update()
+	if len(user.Password) > 0 {
+		return r.db.With(ctx).Model(&user).Exclude("RoleName").Update()
+	}
+	return r.db.With(ctx).Model(&user).Exclude("Password", "RoleName").Update()
 }
 
 // Delete deletes an user with the specified ID from the database.
@@ -73,7 +76,7 @@ func (r repository) Count(ctx context.Context) (int, error) {
 func (r repository) Query(ctx context.Context, offset, limit int) ([]entity.User, error) {
 	var users []entity.User
 	err := r.db.With(ctx).
-		Select("id", "username", "role_id", "first_name", "last_name", "created_at", "updated_at", "is_active").
+		Select("id", "username", "role_id", "first_name", "last_name", "created_at", "updated_at", "is_active", "(select name from roles where id = role_id) as role_name").
 		OrderBy("id").
 		Offset(int64(offset)).
 		Limit(int64(limit)).
