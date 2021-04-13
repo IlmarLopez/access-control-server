@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
@@ -19,14 +18,11 @@ func Handler(verificationKey string) routing.Handler {
 
 // handleToken stores the user identity in the request context so that it can be accessed elsewhere.
 func handleToken(c *routing.Context, token *jwt.Token) error {
-	value := token.Claims.(jwt.MapClaims)["role"].([]interface{})
-	role := fmt.Sprintf("%v", value)
-
 	ctx := WithUser(
 		c.Request.Context(),
 		token.Claims.(jwt.MapClaims)["id"].(string),
 		token.Claims.(jwt.MapClaims)["username"].(string),
-		role,
+		token.Claims.(jwt.MapClaims)["role_id"].(string),
 	)
 
 	c.Request = c.Request.WithContext(ctx)

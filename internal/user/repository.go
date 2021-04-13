@@ -2,7 +2,10 @@ package user
 
 import (
 	"context"
+	"fmt"
 
+	dbx "github.com/go-ozzo/ozzo-dbx"
+	"github.com/qiangxue/go-rest-api/internal/auth"
 	"github.com/qiangxue/go-rest-api/internal/entity"
 	"github.com/qiangxue/go-rest-api/pkg/dbcontext"
 	"github.com/qiangxue/go-rest-api/pkg/log"
@@ -10,6 +13,8 @@ import (
 
 // Repository encapsulates the logic to access users from the data source.
 type Repository interface {
+	// Me returns the user with the specified context.
+	Me(ctx context.Context) (entity.User, error)
 	// Get returns the user with the specified user ID.
 	Get(ctx context.Context, id string) (entity.User, error)
 	// Count returns the number of users.
@@ -83,4 +88,27 @@ func (r repository) Query(ctx context.Context, offset, limit int) ([]entity.User
 		Limit(int64(limit)).
 		All(&users)
 	return users, err
+}
+
+// Me reads the user with the specified ID from the database.
+func (r repository) Me(ctx context.Context) (entity.User, error) {
+
+	identity := auth.CurrentUser(ctx)
+	var user entity.User
+
+	fmt.Println("User ID", identity.GetID())
+	fmt.Println("User ID", identity.GetID())
+	fmt.Println("User ID", identity.GetID())
+	fmt.Println("User ID", identity.GetID())
+	fmt.Println("User ID", identity.GetID())
+	fmt.Println("User ID", identity.GetID())
+	fmt.Println("User ID", identity.GetID())
+	fmt.Println("User ID", identity.GetID())
+
+	if err := r.db.With(ctx).Select("u.*", "(select name from roles where id = role_id) as role_name").From("users as u").Where(dbx.HashExp{"u.id": identity.GetID()}).One(&user); err != nil {
+		fmt.Println(err)
+		return user, err
+	}
+
+	return user, nil
 }

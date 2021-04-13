@@ -5,6 +5,7 @@ import (
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/qiangxue/go-rest-api/internal/entity"
 	"github.com/qiangxue/go-rest-api/pkg/log"
 	"golang.org/x/crypto/bcrypt"
@@ -12,6 +13,7 @@ import (
 
 // Service encapsulates usecase logic for users.
 type Service interface {
+	Me(ctx context.Context) (User, error)
 	Get(ctx context.Context, id string) (User, error)
 	Query(ctx context.Context, offset, limit int) ([]User, error)
 	Count(ctx context.Context) (int, error)
@@ -27,11 +29,15 @@ type User struct {
 
 // CreateUserRequest represents an user creation request.
 type CreateUserRequest struct {
-	Username  string `json:"username" db:"username"`
-	Password  string `json:"password" db:"password"`
-	RoleID    string `json:"role_id" db:"-"`
-	FirstName string `json:"first_name" db:"first_name"`
-	LastName  string `json:"last_name" db:"last_name"`
+	Username           string `json:"username"`
+	Password           string `json:"password"`
+	RoleID             string `json:"role_id"`
+	FirstName          string `json:"first_name"`
+	LastName           string `json:"last_name"`
+	Email              string `json:"email"`
+	RegistrationNumber string `json:"registration_number,omitempty"`
+	CareerID           string `json:"career_id"`
+	GroupID            string `json:"group_id"`
 }
 
 // Validate validates the CreateUserRequest fields.
@@ -42,17 +48,23 @@ func (m CreateUserRequest) Validate() error {
 		validation.Field(&m.RoleID, validation.Required, validation.Length(0, 36)),
 		validation.Field(&m.FirstName, validation.Required, validation.Length(0, 50)),
 		validation.Field(&m.LastName, validation.Required, validation.Length(0, 50)),
+		validation.Field(&m.Email, is.Email, validation.Length(3, 50)),
+		validation.Field(&m.RegistrationNumber, validation.Length(0, 10)),
 	)
 }
 
 // UpdateUserRequest represents an user update request.
 type UpdateUserRequest struct {
-	Username  string `json:"username" db:"username"`
-	Password  string `json:"password" db:"password"`
-	RoleID    string `json:"role_id" db:"-"`
-	FirstName string `json:"first_name" db:"first_name"`
-	LastName  string `json:"last_name" db:"last_name"`
-	IsActive bool `json:"is_active" db:"is_active"`
+	Username           string `json:"username"`
+	Password           string `json:"password"`
+	RoleID             string `json:"role_id"`
+	FirstName          string `json:"first_name"`
+	LastName           string `json:"last_name"`
+	IsActive           bool   `json:"is_active"`
+	Email              string `json:"email"`
+	RegistrationNumber string `json:"registration_number,omitempty"`
+	CareerID           string `json:"career_id"`
+	GroupID            string `json:"group_id"`
 }
 
 // Validate validates the CreateUserRequest fields.
@@ -63,6 +75,8 @@ func (m UpdateUserRequest) Validate() error {
 		validation.Field(&m.Username, validation.Required, validation.Length(0, 50)),
 		validation.Field(&m.RoleID, validation.Required, validation.Length(0, 36)),
 		validation.Field(&m.Password, validation.Length(0, 50)),
+		validation.Field(&m.Email, is.Email, validation.Length(3, 50)),
+		validation.Field(&m.RegistrationNumber, validation.Length(0, 10)),
 	)
 }
 
@@ -107,6 +121,8 @@ func (s service) Create(ctx context.Context, req CreateUserRequest) (User, error
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		IsActive:  true,
+		CareerID:  req.CareerID,
+		GroupID:   req.GroupID,
 	})
 	if err != nil {
 		return User{}, err
@@ -140,6 +156,8 @@ func (s service) Update(ctx context.Context, id string, req UpdateUserRequest) (
 	user.LastName = req.LastName
 	user.UpdatedAt = &now
 	user.IsActive = req.IsActive
+	user.GroupID = req.GroupID
+	user.CareerID = req.CareerID
 
 	if err := s.repo.Update(ctx, user.User); err != nil {
 		return user, err
@@ -175,4 +193,12 @@ func (s service) Query(ctx context.Context, offset, limit int) ([]User, error) {
 		result = append(result, User{item})
 	}
 	return result, nil
+}
+
+func (s service) Me(ctx context.Context) (User, error) {
+	user, err := s.repo.Me(ctx)
+	if err != nil {
+		return User{}, err
+	}
+	return User{user}, nil
 }

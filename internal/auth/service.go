@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -27,7 +26,7 @@ type Identity interface {
 	GetID() string
 	// GetUsername returns the user name.
 	GetUsername() string
-	// GetRoleID returns the user role.
+	// GetRoleID returns the user id role.
 	GetRoleID() string
 }
 
@@ -59,23 +58,12 @@ func (s service) authenticate(ctx context.Context, username, password string) Id
 
 	user := entity.User{}
 
-	if err := s.db.With(ctx).Select().From("users as u").Where(dbx.HashExp{"u.username": username, "u.is_active": true}).One(&user); err != nil {
-		fmt.Println(err)
+	if err := s.db.With(ctx).Select("u.*", "(select name from roles where id = role_id) as role_name").From("users as u").Where(dbx.HashExp{"u.username": username, "u.is_active": true}).One(&user); err != nil {
 		return nil
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		fmt.Println(err)
 		logger.Infof("authentication failed")
-		return nil
-	}
-
-	if err := s.db.With(ctx).Select("r.name as name").
-		From("roles as r").
-		LeftJoin("role_user as ru", dbx.NewExp("r.id = ru.role_id")).
-		Where(dbx.HashExp{"ru.user_id": user.ID}).
-		Column(&user.RoleID); err != nil {
-		fmt.Println(err)
 		return nil
 	}
 
@@ -88,7 +76,7 @@ func (s service) generateJWT(identity Identity) (string, error) {
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":       identity.GetID(),
 		"username": identity.GetUsername(),
-		"role":     identity.GetRoleID(),
+		"role_id":  identity.GetRoleID(),
 		"exp":      time.Now().Add(time.Duration(s.tokenExpiration) * time.Hour).Unix(),
 	}).SignedString([]byte(s.signingKey))
 }

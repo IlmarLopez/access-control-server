@@ -29,7 +29,7 @@ func login(service Service, logger log.Logger) routing.Handler {
 			return err
 		}
 		return c.Write(struct {
-			Token string `json:"token"`
+			Token string `json:"access_token"`
 		}{token})
 	}
 }

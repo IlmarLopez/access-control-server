@@ -16,9 +16,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/qiangxue/go-rest-api/internal/album"
 	"github.com/qiangxue/go-rest-api/internal/auth"
+	"github.com/qiangxue/go-rest-api/internal/career"
 	"github.com/qiangxue/go-rest-api/internal/config"
 	"github.com/qiangxue/go-rest-api/internal/errors"
 	"github.com/qiangxue/go-rest-api/internal/healthcheck"
+	"github.com/qiangxue/go-rest-api/internal/role"
 	"github.com/qiangxue/go-rest-api/internal/user"
 	"github.com/qiangxue/go-rest-api/pkg/accesslog"
 	"github.com/qiangxue/go-rest-api/pkg/dbcontext"
@@ -101,6 +103,16 @@ func buildHandler(logger log.Logger, db *dbcontext.DB, cfg *config.Config) http.
 
 	user.RegisterHandlers(rg.Group(""),
 		user.NewService(user.NewRepository(db, logger), logger),
+		authHandler, logger,
+	)
+
+	career.RegisterHandlers(rg.Group(""),
+		career.NewService(career.NewRepository(db, logger), logger),
+		authHandler, logger,
+	)
+
+	role.RegisterHandlers(rg.Group(""),
+		role.NewService(role.NewRepository(db, logger), logger),
 		authHandler, logger,
 	)
 
