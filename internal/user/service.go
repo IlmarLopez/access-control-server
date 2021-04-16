@@ -113,16 +113,18 @@ func (s service) Create(ctx context.Context, req CreateUserRequest) (User, error
 	}
 
 	err = s.repo.Create(ctx, entity.User{
-		ID:        id,
-		Username:  req.Username,
-		Password:  string(hash),
-		CreatedAt: now,
-		RoleID:    req.RoleID,
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		IsActive:  true,
-		CareerID:  &req.CareerID,
-		GroupID:   &req.GroupID,
+		ID:                 id,
+		Username:           req.Username,
+		Password:           string(hash),
+		CreatedAt:          now,
+		RoleID:             req.RoleID,
+		FirstName:          req.FirstName,
+		LastName:           req.LastName,
+		IsActive:           true,
+		Email:              &req.Email,
+		RegistrationNumber: req.RegistrationNumber,
+		CareerID:           &req.CareerID,
+		GroupID:            &req.GroupID,
 	})
 	if err != nil {
 		return User{}, err

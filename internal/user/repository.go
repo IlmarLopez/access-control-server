@@ -50,7 +50,7 @@ func (r repository) Get(ctx context.Context, id string) (entity.User, error) {
 // Create saves a new user record in the database.
 // It returns the ID of the newly inserted user record.
 func (r repository) Create(ctx context.Context, user entity.User) error {
-	return r.db.With(ctx).Model(&user).Exclude("RoleName").Insert()
+	return r.db.With(ctx).Model(&user).Exclude("RoleName", "CareerName", "GroupName").Insert()
 }
 
 // Update saves the changes to an user in the database.
@@ -58,7 +58,7 @@ func (r repository) Update(ctx context.Context, user entity.User) error {
 	if len(user.Password) > 0 {
 		return r.db.With(ctx).Model(&user).Exclude("RoleName").Update()
 	}
-	return r.db.With(ctx).Model(&user).Exclude("Password", "RoleName").Update()
+	return r.db.With(ctx).Model(&user).Exclude("Password", "RoleName", "CareerName", "GroupName").Update()
 }
 
 // Delete deletes an user with the specified ID from the database.
@@ -95,15 +95,6 @@ func (r repository) Me(ctx context.Context) (entity.User, error) {
 
 	identity := auth.CurrentUser(ctx)
 	var user entity.User
-
-	fmt.Println("User ID", identity.GetID())
-	fmt.Println("User ID", identity.GetID())
-	fmt.Println("User ID", identity.GetID())
-	fmt.Println("User ID", identity.GetID())
-	fmt.Println("User ID", identity.GetID())
-	fmt.Println("User ID", identity.GetID())
-	fmt.Println("User ID", identity.GetID())
-	fmt.Println("User ID", identity.GetID())
 
 	if err := r.db.With(ctx).Select("u.*", "(select name from roles where id = role_id) as role_name").From("users as u").Where(dbx.HashExp{"u.id": identity.GetID()}).One(&user); err != nil {
 		fmt.Println(err)
