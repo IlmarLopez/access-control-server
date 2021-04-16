@@ -3,6 +3,7 @@ package career
 import (
 	"context"
 
+	dbx "github.com/go-ozzo/ozzo-dbx"
 	"github.com/qiangxue/go-rest-api/internal/entity"
 	"github.com/qiangxue/go-rest-api/pkg/dbcontext"
 	"github.com/qiangxue/go-rest-api/pkg/log"
@@ -78,5 +79,13 @@ func (r repository) Query(ctx context.Context, offset, limit int) ([]entity.Care
 		Offset(int64(offset)).
 		Limit(int64(limit)).
 		All(&careers)
+
+	for i := range careers {
+		r.db.With(ctx).
+			Select().
+			From("groups").
+			Where(dbx.HashExp{"career_id": careers[i].ID}).
+			All(&careers[i].Groups)
+	}
 	return careers, err
 }

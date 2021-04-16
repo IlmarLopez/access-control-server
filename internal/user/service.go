@@ -29,15 +29,15 @@ type User struct {
 
 // CreateUserRequest represents an user creation request.
 type CreateUserRequest struct {
-	Username           string `json:"username"`
-	Password           string `json:"password"`
-	RoleID             string `json:"role_id"`
-	FirstName          string `json:"first_name"`
-	LastName           string `json:"last_name"`
-	Email              string `json:"email"`
-	RegistrationNumber string `json:"registration_number,omitempty"`
-	CareerID           string `json:"career_id"`
-	GroupID            string `json:"group_id"`
+	Username           string  `json:"username"`
+	Password           string  `json:"password"`
+	RoleID             string  `json:"role_id"`
+	FirstName          string  `json:"first_name"`
+	LastName           string  `json:"last_name"`
+	Email              string  `json:"email"`
+	RegistrationNumber *string `json:"registration_number,omitempty"`
+	CareerID           string  `json:"career_id"`
+	GroupID            string  `json:"group_id"`
 }
 
 // Validate validates the CreateUserRequest fields.
@@ -121,8 +121,8 @@ func (s service) Create(ctx context.Context, req CreateUserRequest) (User, error
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		IsActive:  true,
-		CareerID:  req.CareerID,
-		GroupID:   req.GroupID,
+		CareerID:  &req.CareerID,
+		GroupID:   &req.GroupID,
 	})
 	if err != nil {
 		return User{}, err
@@ -156,8 +156,8 @@ func (s service) Update(ctx context.Context, id string, req UpdateUserRequest) (
 	user.LastName = req.LastName
 	user.UpdatedAt = &now
 	user.IsActive = req.IsActive
-	user.GroupID = req.GroupID
-	user.CareerID = req.CareerID
+	user.GroupID = &req.GroupID
+	user.CareerID = &req.CareerID
 
 	if err := s.repo.Update(ctx, user.User); err != nil {
 		return user, err
