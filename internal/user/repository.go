@@ -68,7 +68,7 @@ func (r repository) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	user.IsActive = false
-	return r.db.With(ctx).Model(&user).Exclude("RoleName").Update()
+	return r.db.With(ctx).Model(&user).Exclude("RoleName", "CareerName", "GroupName").Update()
 }
 
 // Count returns the number of the user records in the database.
