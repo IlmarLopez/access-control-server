@@ -17,9 +17,9 @@ type User struct {
 	Email              *string    `json:"email" db:"email"`
 	RegistrationNumber *string    `json:"registration_number" db:"registration_number"`
 	CareerID           *string    `json:"career_id" db:"career_id"`
-	CareerName         string     `json:"career_name" db:"career_name"`
+	CareerName         *string    `json:"career_name" db:"career_name"`
 	GroupID            *string    `json:"group_id" db:"group_id"`
-	GroupName          string     `json:"group_name" db:"group_name"`
+	GroupName          *string    `json:"group_name" db:"group_name"`
 }
 
 // TableName represents the table name

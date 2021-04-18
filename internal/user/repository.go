@@ -20,7 +20,7 @@ type Repository interface {
 	// Count returns the number of users.
 	Count(ctx context.Context) (int, error)
 	// Query returns the list of users with the given offset and limit.
-	Query(ctx context.Context, offset, limit int) ([]entity.User, error)
+	Query(ctx context.Context, offset, limit int, term string, filters map[string]interface{}) ([]entity.User, error)
 	// Create saves a new user in the storage.
 	Create(ctx context.Context, user entity.User) error
 	// Update updates the user with given ID in the storage.
@@ -43,7 +43,7 @@ func NewRepository(db *dbcontext.DB, logger log.Logger) Repository {
 // Get reads the user with the specified ID from the database.
 func (r repository) Get(ctx context.Context, id string) (entity.User, error) {
 	var user entity.User
-	err := r.db.With(ctx).Select("*", "(select name from roles where id = role_id) as role_name").Model(id, &user)
+	err := r.db.With(ctx).Select("id", "email", "registration_number", "username", "role_id", "first_name", "last_name", "created_at", "updated_at", "is_active", "career_id", "group_id", "(select name from roles where id = role_id) as role_name", "(select name from careers where id = career_id) as career_name").Model(id, &user)
 	return user, err
 }
 
@@ -56,7 +56,7 @@ func (r repository) Create(ctx context.Context, user entity.User) error {
 // Update saves the changes to an user in the database.
 func (r repository) Update(ctx context.Context, user entity.User) error {
 	if len(user.Password) > 0 {
-		return r.db.With(ctx).Model(&user).Exclude("RoleName").Update()
+		return r.db.With(ctx).Model(&user).Exclude("RoleName", "CareerName", "GroupName").Update()
 	}
 	return r.db.With(ctx).Model(&user).Exclude("Password", "RoleName", "CareerName", "GroupName").Update()
 }
@@ -79,10 +79,11 @@ func (r repository) Count(ctx context.Context) (int, error) {
 }
 
 // Query retrieves the user records with the specified offset and limit from the database.
-func (r repository) Query(ctx context.Context, offset, limit int) ([]entity.User, error) {
+func (r repository) Query(ctx context.Context, offset, limit int, term string, filters map[string]interface{}) ([]entity.User, error) {
 	var users []entity.User
+
 	err := r.db.With(ctx).
-		Select("id", "username", "role_id", "first_name", "last_name", "created_at", "updated_at", "is_active", "(select name from roles where id = role_id) as role_name").
+		Select("id", "email", "registration_number", "username", "role_id", "first_name", "last_name", "created_at", "updated_at", "is_active", "career_id", "group_id", "(select name from roles where id = role_id) as role_name", "(select name from careers where id = career_id) as career_name").
 		OrderBy("id").
 		Offset(int64(offset)).
 		Limit(int64(limit)).

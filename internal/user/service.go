@@ -15,7 +15,7 @@ import (
 type Service interface {
 	Me(ctx context.Context) (User, error)
 	Get(ctx context.Context, id string) (User, error)
-	Query(ctx context.Context, offset, limit int) ([]User, error)
+	Query(ctx context.Context, offset, limit int, term string, filters map[string]interface{}) ([]User, error)
 	Count(ctx context.Context) (int, error)
 	Create(ctx context.Context, input CreateUserRequest) (User, error)
 	Update(ctx context.Context, id string, input UpdateUserRequest) (User, error)
@@ -73,7 +73,7 @@ func (m UpdateUserRequest) Validate() error {
 		validation.Field(&m.FirstName, validation.Required, validation.Length(0, 50)),
 		validation.Field(&m.LastName, validation.Required, validation.Length(0, 50)),
 		validation.Field(&m.Username, validation.Required, validation.Length(0, 50)),
-		validation.Field(&m.RoleID, validation.Required, validation.Length(0, 36)),
+		// validation.Field(&m.RoleID, validation.Required, validation.Length(0, 36)),
 		validation.Field(&m.Password, validation.Length(0, 50)),
 		validation.Field(&m.Email, is.Email, validation.Length(3, 50)),
 		validation.Field(&m.RegistrationNumber, validation.Length(0, 10)),
@@ -185,8 +185,8 @@ func (s service) Count(ctx context.Context) (int, error) {
 }
 
 // Query returns the users with the specified offset and limit.
-func (s service) Query(ctx context.Context, offset, limit int) ([]User, error) {
-	items, err := s.repo.Query(ctx, offset, limit)
+func (s service) Query(ctx context.Context, offset, limit int, term string, filters map[string]interface{}) ([]User, error) {
+	items, err := s.repo.Query(ctx, offset, limit, term, filters)
 	if err != nil {
 		return nil, err
 	}

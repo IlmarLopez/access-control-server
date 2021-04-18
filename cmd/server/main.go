@@ -16,6 +16,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/qiangxue/go-rest-api/internal/album"
 	"github.com/qiangxue/go-rest-api/internal/auth"
+	"github.com/qiangxue/go-rest-api/internal/building"
+	"github.com/qiangxue/go-rest-api/internal/buildingaccess"
 	"github.com/qiangxue/go-rest-api/internal/career"
 	"github.com/qiangxue/go-rest-api/internal/config"
 	"github.com/qiangxue/go-rest-api/internal/errors"
@@ -116,6 +118,15 @@ func buildHandler(logger log.Logger, db *dbcontext.DB, cfg *config.Config) http.
 		authHandler, logger,
 	)
 
+	building.RegisterHandlers(rg.Group(""),
+		building.NewService(building.NewRepository(db, logger), logger),
+		authHandler, logger,
+	)
+
+	buildingaccess.RegisterHandlers(rg.Group(""),
+		buildingaccess.NewService(buildingaccess.NewRepository(db, logger), logger),
+		authHandler, logger,
+	)
 	return router
 }
 

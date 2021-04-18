@@ -1,4 +1,4 @@
-package user
+package buildingaccess
 
 import (
 	"encoding/json"
@@ -15,14 +15,13 @@ func RegisterHandlers(r *routing.RouteGroup, service Service, authHandler routin
 	res := resource{service, logger}
 
 	r.Use(authHandler)
-	// the following endpoints require a valid JWT
 
-	r.Get("/users/me", res.me)
-	r.Get("/users/<id>", res.get)
-	r.Get("/users", res.query)
-	r.Post("/users", res.create)
-	r.Put("/users/<id>", res.update)
-	r.Delete("/users/<id>", res.delete)
+	// the following endpoints require a valid JWT
+	r.Get("/building-accesses/<id>", res.get)
+	r.Get("/building-accesses", res.query)
+	r.Post("/building-accesses", res.create)
+	r.Put("/building-accesses/<id>", res.update)
+	r.Delete("/building-accesses/<id>", res.delete)
 }
 
 type resource struct {
@@ -31,12 +30,12 @@ type resource struct {
 }
 
 func (r resource) get(c *routing.Context) error {
-	user, err := r.service.Get(c.Request.Context(), c.Param("id"))
+	buildingAccess, err := r.service.Get(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		return err
 	}
 
-	return c.Write(user)
+	return c.Write(buildingAccess)
 }
 
 func (r resource) query(c *routing.Context) error {
@@ -52,57 +51,48 @@ func (r resource) query(c *routing.Context) error {
 		return err
 	}
 	pages := pagination.NewFromRequest(c.Request, count)
-	users, err := r.service.Query(ctx, pages.Offset(), pages.Limit(), term, filters)
+	buildingAccesses, err := r.service.Query(ctx, pages.Offset(), pages.Limit(), term, filters)
 	if err != nil {
 		return err
 	}
-	pages.Items = users
+	pages.Items = buildingAccesses
 	return c.Write(pages)
 }
 
 func (r resource) create(c *routing.Context) error {
-	var input CreateUserRequest
+	var input CreateBuildingAccessRequest
 	if err := c.Read(&input); err != nil {
 		r.logger.With(c.Request.Context()).Info(err)
 		return errors.BadRequest("")
 	}
-	user, err := r.service.Create(c.Request.Context(), input)
+	buildingAccess, err := r.service.Create(c.Request.Context(), input)
 	if err != nil {
 		return err
 	}
 
-	return c.WriteWithStatus(user, http.StatusCreated)
+	return c.WriteWithStatus(buildingAccess, http.StatusCreated)
 }
 
 func (r resource) update(c *routing.Context) error {
-	var input UpdateUserRequest
+	var input UpdateBuildingAccessRequest
 	if err := c.Read(&input); err != nil {
 		r.logger.With(c.Request.Context()).Info(err)
 		return errors.BadRequest("")
 	}
 
-	user, err := r.service.Update(c.Request.Context(), c.Param("id"), input)
+	buildingAccess, err := r.service.Update(c.Request.Context(), c.Param("id"), input)
 	if err != nil {
 		return err
 	}
 
-	return c.Write(user)
+	return c.Write(buildingAccess)
 }
 
 func (r resource) delete(c *routing.Context) error {
-	user, err := r.service.Delete(c.Request.Context(), c.Param("id"))
+	buildingAccess, err := r.service.Delete(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		return err
 	}
 
-	return c.Write(user)
-}
-
-func (r resource) me(c *routing.Context) error {
-	user, err := r.service.Me(c.Request.Context())
-	if err != nil {
-		return err
-	}
-
-	return c.Write(user)
+	return c.Write(buildingAccess)
 }
