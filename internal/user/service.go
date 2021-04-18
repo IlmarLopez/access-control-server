@@ -153,7 +153,6 @@ func (s service) Update(ctx context.Context, id string, req UpdateUserRequest) (
 	}
 
 	user.Username = req.Username
-	user.RoleID = req.RoleID
 	user.FirstName = req.FirstName
 	user.LastName = req.LastName
 	user.UpdatedAt = &now
