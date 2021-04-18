@@ -26,10 +26,11 @@ type BuildingAccess struct {
 
 // CreateBuildingAccessRequest represents an buildingAccess creation request.
 type CreateBuildingAccessRequest struct {
-	BuildingID string    `json:"building_id"`
-	UserID     string    `json:"user_id"`
-	CheckIn    time.Time `json:"check_in"`
-	CheckOut   time.Time `json:"check_out"`
+	BuildingID  string    `json:"building_id"`
+	UserID      string    `json:"user_id"`
+	CheckIn     time.Time `json:"check_in"`
+	CheckOut    time.Time `json:"check_out"`
+	Description string    `json:"description"`
 }
 
 // Validate validates the CreateBuildingAccessRequest fields.
@@ -37,16 +38,18 @@ func (m CreateBuildingAccessRequest) Validate() error {
 	return validation.ValidateStruct(&m,
 		validation.Field(&m.BuildingID, validation.Required, validation.Length(36, 36)),
 		validation.Field(&m.UserID, validation.Required, validation.Length(36, 36)),
+		validation.Field(&m.Description, validation.Length(0, 150)),
 		validation.Field(&m.CheckIn, validation.Required),
 	)
 }
 
 // UpdateBuildingAccessRequest represents an buildingAccess update request.
 type UpdateBuildingAccessRequest struct {
-	BuildingID string    `json:"building_id"`
-	UserID     string    `json:"user_id"`
-	CheckIn    time.Time `json:"check_in"`
-	CheckOut   time.Time `json:"check_out"`
+	BuildingID  string    `json:"building_id"`
+	UserID      string    `json:"user_id"`
+	CheckIn     time.Time `json:"check_in"`
+	CheckOut    time.Time `json:"check_out"`
+	Description string    `json:"description"`
 }
 
 // Validate validates the CreateBuildingAccessRequest fields.
@@ -54,6 +57,7 @@ func (m UpdateBuildingAccessRequest) Validate() error {
 	return validation.ValidateStruct(&m,
 		validation.Field(&m.BuildingID, validation.Required, validation.Length(36, 36)),
 		validation.Field(&m.UserID, validation.Required, validation.Length(36, 36)),
+		validation.Field(&m.Description, validation.Length(0, 150)),
 		validation.Field(&m.CheckIn, validation.Required),
 	)
 }
@@ -85,11 +89,12 @@ func (s service) Create(ctx context.Context, req CreateBuildingAccessRequest) (B
 	id := entity.GenerateID()
 	now := time.Now()
 	err := s.repo.Create(ctx, entity.BuildingAccess{
-		ID:         id,
-		BuildingID: req.BuildingID,
-		UserID:     req.UserID,
-		CheckIn:    req.CheckIn,
-		CreatedAt:  now,
+		ID:          id,
+		BuildingID:  req.BuildingID,
+		UserID:      req.UserID,
+		CheckIn:     req.CheckIn,
+		CreatedAt:   now,
+		Description: &req.Description,
 	})
 	if err != nil {
 		return BuildingAccess{}, err
@@ -113,6 +118,7 @@ func (s service) Update(ctx context.Context, id string, req UpdateBuildingAccess
 	buildingAccess.CheckIn = req.CheckIn
 	buildingAccess.CheckOut = &req.CheckOut
 	buildingAccess.UpdatedAt = &now
+	buildingAccess.Description = &req.Description
 
 	if err := s.repo.Update(ctx, buildingAccess.BuildingAccess); err != nil {
 		return buildingAccess, err
