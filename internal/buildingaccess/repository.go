@@ -44,7 +44,7 @@ func (r repository) Get(ctx context.Context, id string) (entity.BuildingAccess, 
 	r.db.With(ctx).
 		Select().
 		From("users").
-		Where(dbx.HashExp{"id": buildingAccess.User.ID}).
+		Where(dbx.HashExp{"id": buildingAccess.UserID}).
 		One(&buildingAccess.User)
 
 	return buildingAccess, err

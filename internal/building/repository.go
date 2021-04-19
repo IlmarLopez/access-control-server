@@ -54,12 +54,12 @@ func (r repository) Get(ctx context.Context, id string) (entity.Building, error)
 // Create saves a new building record in the database.
 // It returns the ID of the newly inserted building record.
 func (r repository) Create(ctx context.Context, building entity.Building) error {
-	return r.db.With(ctx).Model(&building).Insert()
+	return r.db.With(ctx).Model(&building).Exclude("ActiveUsers").Insert()
 }
 
 // Update saves the changes to an building in the database.
 func (r repository) Update(ctx context.Context, building entity.Building) error {
-	return r.db.With(ctx).Model(&building).Update()
+	return r.db.With(ctx).Model(&building).Exclude("ActiveUsers").Update()
 }
 
 // Delete deletes an building with the specified ID from the database.
