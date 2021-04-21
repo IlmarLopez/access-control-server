@@ -5,6 +5,7 @@ import (
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/qiangxue/go-rest-api/internal/auth"
 	"github.com/qiangxue/go-rest-api/internal/entity"
 	"github.com/qiangxue/go-rest-api/pkg/log"
 )
@@ -40,25 +41,24 @@ func (m CreateBuildingAccessRequest) Validate() error {
 		validation.Field(&m.UserID, validation.Required, validation.Length(36, 36)),
 		validation.Field(&m.Description, validation.Length(0, 150)),
 		validation.Field(&m.CheckIn, validation.Required),
+		validation.Field(&m.CheckOut, validation.Required),
 	)
 }
 
 // UpdateBuildingAccessRequest represents an buildingAccess update request.
 type UpdateBuildingAccessRequest struct {
-	BuildingID  string    `json:"building_id"`
-	UserID      string    `json:"user_id"`
-	CheckIn     time.Time `json:"check_in"`
-	CheckOut    time.Time `json:"check_out"`
-	Description string    `json:"description"`
+	// BuildingID  string    `json:"building_id"`
+	// UserID      string    `json:"user_id"`
+	// CheckIn     time.Time `json:"check_in"`
+	// CheckOut    time.Time `json:"check_out"`
+	// ApprovedBy string `json:"approved_by"`
+	IsApproved bool `json:"is_approved"`
 }
 
 // Validate validates the CreateBuildingAccessRequest fields.
 func (m UpdateBuildingAccessRequest) Validate() error {
 	return validation.ValidateStruct(&m,
-		validation.Field(&m.BuildingID, validation.Required, validation.Length(36, 36)),
-		validation.Field(&m.UserID, validation.Required, validation.Length(36, 36)),
-		validation.Field(&m.Description, validation.Length(0, 150)),
-		validation.Field(&m.CheckIn, validation.Required),
+		validation.Field(&m.IsApproved, validation.Required),
 	)
 }
 
@@ -93,6 +93,7 @@ func (s service) Create(ctx context.Context, req CreateBuildingAccessRequest) (B
 		BuildingID:  req.BuildingID,
 		UserID:      req.UserID,
 		CheckIn:     req.CheckIn,
+		CheckOut:    &req.CheckOut,
 		CreatedAt:   now,
 		Description: &req.Description,
 	})
@@ -113,12 +114,15 @@ func (s service) Update(ctx context.Context, id string, req UpdateBuildingAccess
 		return buildingAccess, err
 	}
 
+	identity := auth.CurrentUser(ctx)
+	identityID := identity.GetID()
 	now := time.Now()
 
-	buildingAccess.CheckIn = req.CheckIn
-	buildingAccess.CheckOut = &req.CheckOut
+	// buildingAccess.CheckIn = req.CheckIn
+	// buildingAccess.CheckOut = &req.CheckOut
 	buildingAccess.UpdatedAt = &now
-	buildingAccess.Description = &req.Description
+	buildingAccess.ApprovedBy = &identityID
+	buildingAccess.IsApproved = &req.IsApproved
 
 	if err := s.repo.Update(ctx, buildingAccess.BuildingAccess); err != nil {
 		return buildingAccess, err

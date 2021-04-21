@@ -110,6 +110,12 @@ func (r repository) Query(ctx context.Context, offset, limit int, term string, f
 			From("users").
 			Where(dbx.HashExp{"id": buildingAccesses[i].UserID}).
 			One(&buildingAccesses[i].User)
+
+		r.db.With(ctx).
+			Select("name").
+			From("buildings").
+			Where(dbx.HashExp{"id": buildingAccesses[i].BuildingID}).
+			Row(&buildingAccesses[i].BuildingName)
 	}
 
 	return buildingAccesses, nil
